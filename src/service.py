@@ -11,7 +11,7 @@ from api_models import ArticleResponse
 from consts.mongo_info import MongoInfo
 from db_handler.mongo_handler import MongoHandler
 from llm import ArticleLLMCreator, ContextImprover
-from llm.clients import BaseLLMClient, QwenLocalCPUClient
+from llm.clients import BaseLLMClient, GLM5SelfHostedClient, QwenLocalCPUClient
 
 
 class Service:
@@ -24,7 +24,7 @@ class Service:
         self.mongo_handler = MongoHandler(self.db)
 
         # LLM pipeline components
-        self.llm: BaseLLMClient = QwenLocalCPUClient()
+        self.llm: BaseLLMClient = GLM5SelfHostedClient()
         self.article_creator = ArticleLLMCreator(self.llm)
         self.context_improver = ContextImprover(self.llm)
 
@@ -67,7 +67,6 @@ class Service:
         article: str = await self.article_creator.create_article(
             fetched_data=fetched_data,
             user_context=user_context,
-            user_id=user_id,
         )
 
         return ArticleResponse(
