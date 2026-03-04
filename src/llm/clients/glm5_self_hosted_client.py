@@ -1,4 +1,5 @@
 import os
+from collections.abc import AsyncIterator
 
 from openai import AsyncOpenAI
 
@@ -30,3 +31,28 @@ class GLM5SelfHostedClient(BaseLLMClient):
         )
 
         return response.choices[0].message.content
+
+    async def generate_stream(self, system: str | None, user: str) -> AsyncIterator[str]:
+        messages: list[dict[str, str]] = []
+
+        if system:
+            messages.append({"role": "system", "content": system})
+
+        messages.append({"role": "user", "content": user})
+
+        response_stream = await self.client.chat.completions.create(
+            model=self.model_id,
+            messages=messages,
+            stream=True,
+        )
+
+        async for chunk in response_stream:
+            choices = getattr(chunk, "choices", None)
+            if not choices:
+                continue
+
+            delta = getattr(choices[0], "delta", None)
+            content = getattr(delta, "content", None) if delta else None
+
+            if content:
+                yield content

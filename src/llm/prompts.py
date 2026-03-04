@@ -1,6 +1,11 @@
 import json
 from typing import Any
 
+DEFAULT_CONTEXT_IMPROVER_SYSTEM_PROMPT = (
+    "You are a helpful assistant that improves user context for better downstream analysis. "
+    "Rewrite the user's context to be more structured, clear, and informative, based on the clarification request."
+)
+
 DEFAULT_ANALYSIS_PROMPT = (
     "Extract and structure analytical insights from the provided data in relation to the user context. "
     "Identify thematic patterns, indirect signals, emerging trends, anomalies, and notable entities. "
@@ -29,6 +34,20 @@ DEFAULT_SUMMARIZE_SYSTEM_PROMPT = (
     "Do not invent facts beyond the provided insights. If signals are weak or conflicting, explicitly state the uncertainty. "
     "Prioritize clarity, synthesis, and strategic meaning over listing details."
 )
+
+
+def get_context_improver_user_prompt(
+    current_context: str,
+    context_request_clarification: str,
+):
+    return (
+        f"CURRENT CONTEXT:\n{current_context}\n\n"
+        f"CLARIFICATION REQUEST:\n{context_request_clarification}\n\n"
+        "Rewrite the context so it directly addresses the clarification request while preserving the original intent, key facts, and tone. "
+        "Return one coherent updated context paragraph (no markdowns, no trailing commas)."
+        "Do not add ANYTHING that was not specifically asked."
+        "It should later be used as input for an analytical summarize, so prioritize clarity, relevance, and informativeness."
+    )
 
 
 def get_summarize_batch_user_prompt(user_context: str, indexed_docs: list[dict[str, Any]]) -> str:

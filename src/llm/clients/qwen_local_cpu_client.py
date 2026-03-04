@@ -1,3 +1,5 @@
+from collections.abc import AsyncIterator
+
 from ollama import AsyncClient
 
 from llm.clients.base_llm_client import BaseLLMClient
@@ -20,3 +22,8 @@ class QwenLocalCPUClient(BaseLLMClient):
         response = await AsyncClient().chat(model=self.model_id, messages=messages)
 
         return getattr(getattr(response, "message", None), "content", None)
+
+    async def generate_stream(self, system: str | None, user: str) -> AsyncIterator[str]:
+        text = await self.generate(system=system, user=user)
+        if text:
+            yield text

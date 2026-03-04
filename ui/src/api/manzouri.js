@@ -1,4 +1,4 @@
-import { MANZOURI_REPLY_URL } from '../constants/chat.js';
+import { MANZOURI_REPLY_STREAM_URL } from '../constants/chat.js';
 
 const DEBUG_API = import.meta.env.VITE_DEBUG_API === 'true';
 
@@ -34,7 +34,7 @@ function extractReply(payload) {
 }
 
 export async function fetchManzouriReply(requestPayload) {
-  const url = new URL(MANZOURI_REPLY_URL);
+  const url = new URL(MANZOURI_REPLY_STREAM_URL);
   Object.entries(requestPayload).forEach(([key, value]) => {
     url.searchParams.set(key, String(value));
   });
@@ -59,21 +59,84 @@ export async function fetchManzouriReply(requestPayload) {
     throw new Error(`Manzouri API returned status ${response.status}`);
   }
 
-  const contentType = response.headers.get('content-type') ?? '';
-
-  if (contentType.includes('application/json')) {
-    const payload = await response.json();
-    debugLog('response-json', payload);
-
-    const reply = extractReply(payload);
-    debugLog('resolved-reply', reply);
-    return reply;
+  if (!response.body) {
+    const textPayload = await response.text();
+    debugLog('response-text-fallback', textPayload);
+    return extractReply(textPayload);
   }
 
-  const textPayload = await response.text();
-  debugLog('response-text', textPayload);
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
 
-  const reply = extractReply(textPayload);
-  debugLog('resolved-reply', reply);
-  return reply;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const chunk = decoder.decode(value, { stream: true });
+    if (!chunk) {
+      continue;
+    }
+    fullText += chunk;
+  }
+
+  const trailing = decoder.decode();
+  if (trailing) {
+    fullText += trailing;
+  }
+
+  debugLog('response-stream-complete', fullText);
+  return extractReply(fullText);
+}
+
+export async function streamManzouriReply(requestPayload, onChunk) {
+  const url = new URL(MANZOURI_REPLY_STREAM_URL);
+  Object.entries(requestPayload).forEach(([key, value]) => {
+    url.searchParams.set(key, String(value));
+  });
+
+  debugLog('stream-request', {
+    method: 'GET',
+    url: url.toString(),
+    query: requestPayload,
+  });
+
+  const response = await fetch(url, { method: 'GET' });
+  if (!response.ok) {
+    throw new Error(`Manzouri API returned status ${response.status}`);
+  }
+  if (!response.body) {
+    const text = await response.text();
+    onChunk?.(text);
+    return extractReply(text);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let fullText = '';
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      break;
+    }
+
+    const chunk = decoder.decode(value, { stream: true });
+    if (!chunk) {
+      continue;
+    }
+
+    fullText += chunk;
+    onChunk?.(chunk);
+  }
+
+  const trailing = decoder.decode();
+  if (trailing) {
+    fullText += trailing;
+    onChunk?.(trailing);
+  }
+
+  return extractReply(fullText);
 }

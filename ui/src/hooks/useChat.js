@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { fetchManzouriReply } from '../api/manzouri.js';
+import { streamManzouriReply } from '../api/manzouri.js';
 import { CHAT_CONTACT, MANZOURI_REQUEST_PAYLOAD } from '../constants/chat.js';
 import { createMessage } from '../utils/chat.js';
 
@@ -23,21 +23,43 @@ export function useChat() {
     ]);
     setText('');
 
+    const replyMessage = createMessage({ sender: 'manzouri', content: '' });
+    setMessages((previous) => [...previous, replyMessage]);
+
     try {
-      const replyFromApi = await fetchManzouriReply(MANZOURI_REQUEST_PAYLOAD);
-      const reply = replyFromApi ?? 'Manzouri did not return a message.';
+      const replyFromApi = await streamManzouriReply(MANZOURI_REQUEST_PAYLOAD, (chunk) => {
+        setMessages((previous) =>
+          previous.map((message) =>
+            message.id === replyMessage.id
+              ? { ...message, content: `${message.content}${chunk}` }
+              : message
+          )
+        );
+      });
 
       setMessages((previous) => [
-        ...previous,
-        createMessage({ sender: 'manzouri', content: reply }),
+        ...previous.map((message) =>
+            message.id === replyMessage.id
+              ? {
+                  ...message,
+                  content:
+                    replyFromApi ??
+                    message.content ??
+                    'Manzouri did not return a message.',
+                }
+              : message
+        ),
       ]);
     } catch (error) {
       setMessages((previous) => [
-        ...previous,
-        createMessage({
-          sender: 'manzouri',
-          content: 'Could not reach Manzouri right now. Please try again.',
-        }),
+        ...previous.map((message) =>
+          message.id === replyMessage.id
+            ? {
+                ...message,
+                content: 'Could not reach Manzouri right now. Please try again.',
+              }
+            : message
+        ),
       ]);
     }
   }, [text]);

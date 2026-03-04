@@ -1,6 +1,6 @@
 import asyncio
 import json
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from typing import Any
 
 from loguru import logger
@@ -35,17 +35,54 @@ class LLMSummarizeCreator:
         - Split raw documents into batches
         - Summarize each batch into structured insights (map)
         - Synthesize final prose summarize from all batch summaries (reduce)
-
-        NOTE: iter_batches / summarize_batch / synthesize_summarize are treated as black boxes.
         """
 
-        # Fast path: no data
         if not fetched_data:
             return "No data available for the selected filters."
 
-        # A conservative default that works reasonably on CPU inference.
-        # TODO: We'll make this adaptive later (e.g., by token estimation).
+        batch_summaries = await self.build_batch_summaries(
+            fetched_data=fetched_data,
+            user_context=user_context,
+        )
 
+        if not batch_summaries:
+            return "Insufficient signal to generate an summarize from the available data."
+
+        return await self.synthesize_summarize(
+            batch_summaries=batch_summaries,
+            user_context=user_context,
+        )
+
+    async def create_summarize_stream(
+        self,
+        fetched_data: list[str],
+        user_context: str,
+    ) -> AsyncIterator[str]:
+        if not fetched_data:
+            yield "No data available for the selected filters."
+            return
+
+        batch_summaries = await self.build_batch_summaries(
+            fetched_data=fetched_data,
+            user_context=user_context,
+        )
+
+        if not batch_summaries:
+            yield "Insufficient signal to generate an summarize from the available data."
+            return
+
+        async for chunk in self.synthesize_summarize_stream(
+            batch_summaries=batch_summaries,
+            user_context=user_context,
+        ):
+            yield chunk
+
+    async def build_batch_summaries(
+        self,
+        fetched_data: list[str],
+        user_context: str,
+    ) -> list[dict[str, Any]]:
+        # TODO: We'll make this adaptive later (e.g., by token estimation).
         semaphore: asyncio.Semaphore = asyncio.Semaphore(3)
         batch_size: int = 850
 
@@ -59,23 +96,9 @@ class LLMSummarizeCreator:
             )
             for batch in self.iter_batches(fetched_data=fetched_data, batch_size=batch_size)
         ]
-
         results = await asyncio.gather(*tasks)
 
-        batch_summaries: list[dict[str, Any]] = []
-        for summary in results:
-            if summary:
-                batch_summaries.append(summary)
-
-        if not batch_summaries:
-            return "Insufficient signal to generate an summarize from the available data."
-
-        summarize = await self.synthesize_summarize(
-            batch_summaries=batch_summaries,
-            user_context=user_context,
-        )
-
-        return summarize
+        return [summary for summary in results if summary]
 
     def iter_batches(
         self,
@@ -161,23 +184,34 @@ class LLMSummarizeCreator:
     ) -> str:
         """Reduce step: combine structured batch summaries into final prose."""
 
-        # Fast path: no summaries
         if not batch_summaries:
             return "No insights available to synthesize an summarize."
 
-        # We will pass structured summaries to the model and ask it to write prose.
-        # Keep it JSON so the model can reliably read the structure.
         summaries_json: str = json.dumps(batch_summaries, ensure_ascii=False)
-
         user_prompt = get_synthesize_summarize_user_prompt(
             user_context=user_context,
             summaries_json=summaries_json,
         )
 
-        if hasattr(self.llm, "generate"):
-            return await self.llm.generate(system=DEFAULT_SUMMARIZE_SYSTEM_PROMPT, user=user_prompt)
-        else:
-            raise TypeError(
-                "BaseLLMClient must expose an async method named generate(system=..., user=...), "
-                "which returns the generated text as a string."
-            )
+        return await self.llm.generate(system=DEFAULT_SUMMARIZE_SYSTEM_PROMPT, user=user_prompt)
+
+    async def synthesize_summarize_stream(
+        self,
+        batch_summaries: list[dict[str, Any]],
+        user_context: str,
+    ) -> AsyncIterator[str]:
+        if not batch_summaries:
+            yield "No insights available to synthesize an summarize."
+            return
+
+        summaries_json: str = json.dumps(batch_summaries, ensure_ascii=False)
+        user_prompt = get_synthesize_summarize_user_prompt(
+            user_context=user_context,
+            summaries_json=summaries_json,
+        )
+
+        async for chunk in self.llm.generate_stream(
+            system=DEFAULT_SUMMARIZE_SYSTEM_PROMPT,
+            user=user_prompt,
+        ):
+            yield chunk
