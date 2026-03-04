@@ -82,7 +82,6 @@ class LLMSummarizeCreator:
         fetched_data: list[str],
         user_context: str,
     ) -> list[dict[str, Any]]:
-        # TODO: We'll make this adaptive later (e.g., by token estimation).
         semaphore: asyncio.Semaphore = asyncio.Semaphore(3)
         batch_size: int = 850
 
@@ -106,7 +105,6 @@ class LLMSummarizeCreator:
         fetched_data: list[str],
         batch_size: int,
     ) -> Iterator[list[str]]:
-        """Yield data in batches. TODO: (We will later make this more sophisticated.)"""
         if batch_size <= 0:
             raise ValueError("batch_size must be a positive integer")
 
