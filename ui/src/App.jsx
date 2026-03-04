@@ -1,15 +1,10 @@
-import { useMemo } from 'react';
 import ChatHeader from './components/ChatHeader.jsx';
 import ContextPanel from './components/ContextPanel.jsx';
-import MessageComposer from './components/MessageComposer.jsx';
-import MessageList from './components/MessageList.jsx';
 import { CHAT_CONTACT } from './constants/chat.js';
-import { useChat } from './hooks/useChat.js';
 import { useContextManager } from './hooks/useContextManager.js';
-import { formatTime } from './utils/time.js';
+import { useSummaryGenerator } from './hooks/useSummaryGenerator.js';
 
 export default function App() {
-  const { text, setText, messages, sendMessage } = useChat();
   const {
     isPanelOpen,
     currentContext,
@@ -28,16 +23,20 @@ export default function App() {
     applyManualUpdate,
     applyLlmUpdate,
   } = useContextManager();
-
-  const lastSeen = useMemo(() => formatTime(new Date()), []);
+  const { summary, isGenerating, error, generatedAtLabel, generateSummary } =
+    useSummaryGenerator();
 
   return (
     <main className="chat-page">
-      <section className="chat-card" aria-label={`Chat with ${CHAT_CONTACT.name}`}>
+      <section className="chat-card" aria-label="Summary workspace">
         <ChatHeader
-          name={CHAT_CONTACT.name}
+          name="Summary Generator"
           avatarInitial={CHAT_CONTACT.avatarInitial}
-          lastSeen={lastSeen}
+          subtitle={
+            generatedAtLabel
+              ? `Last generated today at ${generatedAtLabel}`
+              : 'Generate a fluent summary from your current data and context'
+          }
           onContextClick={openPanel}
         />
         <ContextPanel
@@ -57,13 +56,40 @@ export default function App() {
           onLlmUpdate={applyLlmUpdate}
           onClose={closePanel}
         />
-        <MessageList messages={messages} />
-        <MessageComposer
-          text={text}
-          onTextChange={setText}
-          onSend={sendMessage}
-          contactName={CHAT_CONTACT.name}
-        />
+        <section className="summary-shell">
+          <div className="summary-toolbar">
+            <button
+              type="button"
+              className="generate-button"
+              onClick={generateSummary}
+              disabled={isGenerating}
+            >
+              {isGenerating ? 'Generating...' : 'Generate Summary'}
+            </button>
+          </div>
+
+          <article className="summary-output" aria-live="polite">
+            {summary ? (
+              summary
+            ) : isGenerating ? (
+              <div className="thinking-state">
+                <p className="thinking-title">Working on your summary</p>
+                <p className="thinking-subtitle">
+                  Reading data, extracting signals, and preparing a fluent response.
+                </p>
+                <div className="thinking-dots" aria-label="Generating summary">
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              </div>
+            ) : (
+              'No summary generated yet.'
+            )}
+          </article>
+
+          {error ? <p className="status error">{error}</p> : null}
+        </section>
       </section>
     </main>
   );

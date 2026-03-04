@@ -1,4 +1,4 @@
-export default function ChatHeader({ name, avatarInitial, lastSeen, onContextClick }) {
+export default function ChatHeader({ name, avatarInitial, subtitle, onContextClick }) {
   return (
     <header className="chat-header">
       <div className="avatar" aria-hidden="true">
@@ -6,7 +6,7 @@ export default function ChatHeader({ name, avatarInitial, lastSeen, onContextCli
       </div>
       <div className="chat-title">
         <h1>{name}</h1>
-        <p>Last seen today at {lastSeen}</p>
+        <p>{subtitle}</p>
       </div>
       <button type="button" className="context-toggle" onClick={onContextClick}>
         Update Context
