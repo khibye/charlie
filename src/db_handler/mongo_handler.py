@@ -3,8 +3,7 @@ from typing import Any
 
 from motor.motor_asyncio import AsyncIOMotorCollection, AsyncIOMotorCursor, AsyncIOMotorDatabase
 
-from consts.defaults import DEFAULT_CONTEXT
-from consts.mongo_info import MongoInfo
+from consts import DEFAULT_CONTEXT, MongoInfo
 from db_handler.db_handler import DBHandler
 
 
