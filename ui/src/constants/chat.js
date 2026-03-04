@@ -4,7 +4,7 @@ export const CHAT_CONTACT = {
   introMessage: 'Hey, this is Manzouri. Send me a message when you are ready.',
 };
 
-export const MANZOURI_REPLY_URL = 'http://localhost:8000/article';
+export const MANZOURI_REPLY_URL = 'http://localhost:8000/summarize';
 export const USER_ID = 'user-001';
 export const COUNTRY = 'Israel';
 export const CITY = 'Tel Aviv';

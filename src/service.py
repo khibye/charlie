@@ -9,16 +9,16 @@ from motor.motor_asyncio import (
     AsyncIOMotorDatabase,
 )
 
-from api_models import ArticleResponse
+from api_models import SummarizeResponse, ContextResponse
 from consts.mongo_info import MongoInfo
 from db_handler.mongo_handler import MongoHandler
-from llm import ArticleLLMCreator, ContextImprover
+from llm import LLMSummarizeCreator, LLMContextImprover
 from llm.clients import BaseLLMClient, GLM5SelfHostedClient, QwenLocalCPUClient
 
 
 class Service:
     def __init__(self) -> None:
-        self.app = FastAPI(title="Article Creator Service")
+        self.app = FastAPI(title="Summarize Creator Service")
         self.app.add_middleware(
             CORSMiddleware,
             allow_origins=[
@@ -37,26 +37,44 @@ class Service:
 
         # LLM pipeline components
         self.llm: BaseLLMClient = GLM5SelfHostedClient()
-        self.article_creator = ArticleLLMCreator(self.llm)
-        self.context_improver = ContextImprover(self.llm)
+        self.summarize_creator = LLMSummarizeCreator(self.llm)
+        self.llm_context_improver = LLMContextImprover(self.llm)
 
         # Routes
         self.app.add_api_route(
-            "/article",
-            self.get_article,
+            "/summarize",
+            self.get_summarize,
             methods=["GET"],
-            response_model=ArticleResponse,
+            response_model=SummarizeResponse,
+        )
+        self.app.add_api_route(
+            "/context",
+            self.get_context,
+            methods=["GET"],
+            response_model=ContextResponse,
+        )
+        self.app.add_api_route(
+            "/llm-improve-context",
+            self.llm_improve_context,
+            methods=["POST"],
+            response_model=SummarizeResponse,
+        )
+        self.app.add_api_route(
+            "/manual-improve-context",
+            self.manual_improve_context,
+            methods=["POST"],
+            response_model=SummarizeResponse,
         )
 
-    async def get_article(
+    async def get_summarize(
         self,
         country: str = Query(...),
         city: str = Query(...),
-        user_id: str = Query(default="default_user"),
+        user_id: str = Query(...),
         date_from: str = Query(default=""),
         date_to: str = Query(default=""),
-    ) -> ArticleResponse:
-        """Main endpoint: fetch data + context and run the article creation pipeline."""
+    ) -> SummarizeResponse:
+        """Main endpoint: fetch data + context and run the summarize creation pipeline."""
 
         date_to = datetime.fromisoformat(date_to if date_to else datetime.now().isoformat())
         date_from = datetime.fromisoformat(
@@ -76,15 +94,15 @@ class Service:
             user_id=user_id,
         )
 
-        article: str = await self.article_creator.create_article(
+        summarize: str = await self.summarize_creator.create_summarize(
             fetched_data=fetched_data,
             user_context=user_context,
         )
 
-        logger.info("Done creating article", country=country, city=city, user_id=user_id)
+        logger.info("Done creating summarize", country=country, city=city, user_id=user_id)
 
-        return ArticleResponse(
-            article=article,
+        return SummarizeResponse(
+            summarize=summarize,
             meta={
                 "country": country,
                 "city": city,
@@ -92,6 +110,65 @@ class Service:
                 "count": len(fetched_data),
                 "context": user_context,
             },
+        )
+
+    async def get_context(
+        self,
+        country: str = Query(...),
+        city: str = Query(...),
+        user_id: str = Query(...),
+    ) -> ContextResponse:
+        context = await self.mongo_handler.fetch_user_context(
+            country=country,
+            city=city,
+            user_id=user_id,
+        )
+        return ContextResponse(
+            context=context,
+            meta={
+                "country": country,
+                "city": city,
+                "user_id": user_id,
+            },
+        )
+
+    async def manual_improve_context(
+        self,
+        country: str = Query(...),
+        city: str = Query(...),
+        user_id: str = Query(...),
+        new_context: str = Query(...),
+    ):
+        await self.mongo_handler.update_user_context(
+            country=country,
+            city=city,
+            user_id=user_id,
+            new_context=new_context,
+        )
+
+    async def llm_improve_context(
+        self,
+        country: str = Query(...),
+        city: str = Query(...),
+        user_id: str = Query(...),
+        context_request_clarification: str = Query(...),
+    ):
+        current_context: str = self.mongo_handler.fetch_user_context(
+            country=country,
+            city=city,
+            user_id=user_id,
+        )
+
+        improved_context: str = await self.llm_context_improver.improve_with_llm(
+            current_context=current_context,
+            context_request_clarification=context_request_clarification,
+        )
+
+        await self.mongo_handler.update_user_context(
+            country=country,
+            city=city,
+            user_id=user_id,
+            new_context=improved_context,
         )
 
 

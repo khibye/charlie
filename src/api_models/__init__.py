@@ -1,4 +1,5 @@
-__all__ = ["ArticleRequest", "ArticleResponse"]
+__all__ = ["SummarizeRequest", "SummarizeResponse", "ContextResponse"]
 
-from .article_request import ArticleRequest
-from .article_response import ArticleResponse
+from .summarize_request import SummarizeRequest
+from .summarize_response import SummarizeResponse
+from .context_response import ContextResponse

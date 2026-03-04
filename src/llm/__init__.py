@@ -1,4 +1,4 @@
-__all__ = ["ArticleLLMCreator", "ContextImprover"]
+__all__ = ["LLMSummarizeCreator", "LLMContextImprover"]
 
-from .article_creator import ArticleLLMCreator
-from .context_improver import ContextImprover
+from .llm_summarize_creator import LLMSummarizeCreator
+from .llm_context_improver import LLMContextImprover

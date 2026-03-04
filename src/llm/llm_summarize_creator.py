@@ -8,14 +8,14 @@ from loguru import logger
 from .clients.base_llm_client import BaseLLMClient
 from .prompts import (
     DEFAULT_ANALYSIS_SYSTEM_PROMPT,
-    DEFAULT_ARTICLE_SYSTEM_PROMPT,
+    DEFAULT_SUMMARIZE_SYSTEM_PROMPT,
     get_summarize_batch_user_prompt,
-    get_synthesize_article_user_prompt,
+    get_synthesize_summarize_user_prompt,
 )
 
 
-class ArticleLLMCreator:
-    """Creates an analytical article from raw data + user context.
+class LLMSummarizeCreator:
+    """Creates an analytical summarize from raw data + user context.
 
     IMPORTANT: This class is intentionally a skeleton.
     We'll later implement a map/reduce-style pipeline (batch summaries -> global synthesis).
@@ -24,7 +24,7 @@ class ArticleLLMCreator:
     def __init__(self, llm: BaseLLMClient) -> None:
         self.llm = llm
 
-    async def create_article(
+    async def create_summarize(
         self,
         fetched_data: list[str],
         user_context: str,
@@ -34,9 +34,9 @@ class ArticleLLMCreator:
         Orchestrates a simple map/reduce pipeline:
         - Split raw documents into batches
         - Summarize each batch into structured insights (map)
-        - Synthesize final prose article from all batch summaries (reduce)
+        - Synthesize final prose summarize from all batch summaries (reduce)
 
-        NOTE: iter_batches / summarize_batch / synthesize_article are treated as black boxes.
+        NOTE: iter_batches / summarize_batch / synthesize_summarize are treated as black boxes.
         """
 
         # Fast path: no data
@@ -47,7 +47,7 @@ class ArticleLLMCreator:
         # TODO: We'll make this adaptive later (e.g., by token estimation).
 
         semaphore: asyncio.Semaphore = asyncio.Semaphore(3)
-        batch_size: int = 560
+        batch_size: int = 850
 
         tasks = [
             asyncio.create_task(
@@ -68,14 +68,14 @@ class ArticleLLMCreator:
                 batch_summaries.append(summary)
 
         if not batch_summaries:
-            return "Insufficient signal to generate an article from the available data."
+            return "Insufficient signal to generate an summarize from the available data."
 
-        article = await self.synthesize_article(
+        summarize = await self.synthesize_summarize(
             batch_summaries=batch_summaries,
             user_context=user_context,
         )
 
-        return article
+        return summarize
 
     def iter_batches(
         self,
@@ -154,7 +154,7 @@ class ArticleLLMCreator:
             logger.info(f"Completed batch of {len(batch)} documents")
             return result
 
-    async def synthesize_article(
+    async def synthesize_summarize(
         self,
         batch_summaries: list[dict[str, Any]],
         user_context: str,
@@ -163,19 +163,19 @@ class ArticleLLMCreator:
 
         # Fast path: no summaries
         if not batch_summaries:
-            return "No insights available to synthesize an article."
+            return "No insights available to synthesize an summarize."
 
         # We will pass structured summaries to the model and ask it to write prose.
         # Keep it JSON so the model can reliably read the structure.
         summaries_json: str = json.dumps(batch_summaries, ensure_ascii=False)
 
-        user_prompt = get_synthesize_article_user_prompt(
+        user_prompt = get_synthesize_summarize_user_prompt(
             user_context=user_context,
             summaries_json=summaries_json,
         )
 
         if hasattr(self.llm, "generate"):
-            return await self.llm.generate(system=DEFAULT_ARTICLE_SYSTEM_PROMPT, user=user_prompt)
+            return await self.llm.generate(system=DEFAULT_SUMMARIZE_SYSTEM_PROMPT, user=user_prompt)
         else:
             raise TypeError(
                 "BaseLLMClient must expose an async method named generate(system=..., user=...), "

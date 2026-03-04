@@ -77,3 +77,22 @@ class MongoHandler(DBHandler):
             )
             or {}
         ).get("context", DEFAULT_CONTEXT)
+
+    async def update_user_context(
+        self,
+        country: str,
+        city: str,
+        user_id: str,
+        new_context: str,
+    ) -> None:
+        """Update user_context for (country, city, user_id) in MongoDB."""
+        filter_query: dict[str, Any] = {
+            "country": country,
+            "city": city,
+            "user_id": user_id,
+        }
+
+        await self.context_collection.update_one(
+            filter=filter_query,
+            update={"$set": {"context": new_context}},
+        )

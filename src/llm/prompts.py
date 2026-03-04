@@ -9,8 +9,8 @@ DEFAULT_ANALYSIS_PROMPT = (
     "Prioritize signal over verbosity and avoid narrative storytelling."
 )
 
-DEFAULT_ARTICLE_PROMPT = (
-    "Write a concise, high-level analytical article based on the structured insights provided. "
+DEFAULT_SUMMARIZE_PROMPT = (
+    "Write a concise, high-level analytical summarize based on the structured insights provided. "
     "Focus on thematic patterns, indirect signals, trends, and strategic implications. "
     "Include insights and well-reasoned conclusions. "
     "Mention important names, places, files, and dates when they materially support the analysis. "
@@ -23,9 +23,9 @@ DEFAULT_ANALYSIS_SYSTEM_PROMPT = (
     "When unsure, state uncertainty."
 )
 
-DEFAULT_ARTICLE_SYSTEM_PROMPT = (
+DEFAULT_SUMMARIZE_SYSTEM_PROMPT = (
     "You are a senior strategic analyst and writer. Your role is to synthesize structured analytical insights "
-    "into a coherent, high-level article. Focus on patterns, implications, and well-supported conclusions. "
+    "into a coherent, high-level summarize. Focus on patterns, implications, and well-supported conclusions. "
     "Do not invent facts beyond the provided insights. If signals are weak or conflicting, explicitly state the uncertainty. "
     "Prioritize clarity, synthesis, and strategic meaning over listing details."
 )
@@ -57,16 +57,16 @@ def get_summarize_batch_user_prompt(user_context: str, indexed_docs: list[dict[s
     )
 
 
-def get_synthesize_article_user_prompt(user_context: str, summaries_json: str) -> str:
+def get_synthesize_summarize_user_prompt(user_context: str, summaries_json: str) -> str:
     return (
         "USER CONTEXT (IMPORTANT):\n"
         f"{user_context}\n\n"
         "STRUCTURED INSIGHTS (JSON):\n"
         f"{summaries_json}\n\n"
         "TASK:\n"
-        f"{DEFAULT_ARTICLE_PROMPT}\n\n"
+        f"{DEFAULT_SUMMARIZE_PROMPT}\n\n"
         "Writing rules:\n"
-        "- Produce a single article as plain text (no JSON).\n"
+        "- Produce a single summarize as plain text (no JSON).\n"
         "- Be conservative: do not invent facts not supported by the insights.\n"
         "- If evidence is weak or conflicting, say so explicitly.\n"
         "- Prefer synthesis over listing; avoid item-by-item mapping.\n"

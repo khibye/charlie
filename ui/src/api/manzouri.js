@@ -20,10 +20,10 @@ function extractReply(payload) {
     return null;
   }
 
-  if (typeof payload.article === 'string') {
-    const articleText = payload.article.trim();
-    if (articleText) {
-      return articleText;
+  if (typeof payload.summarize === 'string') {
+    const summarizeText = payload.summarize.trim();
+    if (summarizeText) {
+      return summarizeText;
     }
   }
 
