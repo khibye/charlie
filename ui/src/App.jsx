@@ -23,7 +23,7 @@ export default function App() {
     applyManualUpdate,
     applyLlmUpdate,
   } = useContextManager();
-  const { summary, isGenerating, error, generatedAtLabel, generateSummary } =
+  const { summary, isGenerating, error, generatedAtLabel, generateSummary, stopSummary } =
     useSummaryGenerator();
 
   return (
@@ -64,8 +64,13 @@ export default function App() {
               onClick={generateSummary}
               disabled={isGenerating}
             >
-              {isGenerating ? 'Generating...' : 'Generate Summary'}
+              Generate Summary
             </button>
+            {isGenerating ? (
+              <button type="button" className="stop-button" onClick={stopSummary}>
+                Stop
+              </button>
+            ) : null}
           </div>
 
           <article className="summary-output" aria-live="polite">

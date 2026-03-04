@@ -219,6 +219,7 @@ body {
 .summary-toolbar {
   display: flex;
   justify-content: flex-start;
+  gap: 0.6rem;
 }
 
 .generate-button {
@@ -235,6 +236,22 @@ body {
 .generate-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.stop-button {
+  border: 1px solid #f0d5c2;
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.95rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #7c2d12;
+  background: #fff;
+  cursor: pointer;
+}
+
+.stop-button:hover {
+  border-color: #f1a97c;
+  background: #fff7f2;
 }
 
 .summary-output {

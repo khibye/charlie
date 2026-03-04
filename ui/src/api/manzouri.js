@@ -91,7 +91,7 @@ export async function fetchManzouriReply(requestPayload) {
   return extractReply(fullText);
 }
 
-export async function streamManzouriReply(requestPayload, onChunk) {
+export async function streamManzouriReply(requestPayload, onChunk, options = {}) {
   const url = new URL(MANZOURI_REPLY_STREAM_URL);
   Object.entries(requestPayload).forEach(([key, value]) => {
     url.searchParams.set(key, String(value));
@@ -103,7 +103,7 @@ export async function streamManzouriReply(requestPayload, onChunk) {
     query: requestPayload,
   });
 
-  const response = await fetch(url, { method: 'GET' });
+  const response = await fetch(url, { method: 'GET', signal: options.signal });
   if (!response.ok) {
     throw new Error(`Manzouri API returned status ${response.status}`);
   }
