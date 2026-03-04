@@ -1,0 +1,57 @@
+[project]
+name = "llm"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "liranmanzouri",email = "liranman77@gmail.com"}
+]
+requires-python = ">=3.14,<4.0"
+dependencies = [
+    "fastapi (>=0.135.1,<0.136.0)",
+    "motor (>=3.7.1,<4.0.0)",
+    "faker (>=40.5.1,<41.0.0)",
+    "ollama (>=0.6.1,<0.7.0)",
+    "uvicorn (>=0.41.0,<0.42.0)",
+    "loguru (>=0.7.3,<0.8.0)",
+    "together (>=2.2.0,<3.0.0)",
+    "openai (>=2.24.0,<3.0.0)"
+]
+
+[tool.poetry]
+packages = [{ include = "src", from = "." }]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.15.4,<0.16.0)"
+]
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "N",   # pep8-naming
+    "RUF", # Ruff-specific rules
+]
+
+ignore = [
+    "E501",  # ignore line length (handled by formatter if needed)
+]
+
+fixable = ["ALL"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
