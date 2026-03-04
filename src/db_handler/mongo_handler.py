@@ -32,6 +32,7 @@ class MongoHandler(DBHandler):
         filter_query: dict[str, Any] = {
             "country": country,
             "city": city,
+            # TODO: Add date
         }
         projection_query: dict[str, bool] = {
             "_id": False,

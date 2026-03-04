@@ -14,7 +14,6 @@ DEFAULT_ARTICLE_PROMPT = (
     "Focus on thematic patterns, indirect signals, trends, and strategic implications. "
     "Include insights and well-reasoned conclusions. "
     "Mention important names, places, files, and dates when they materially support the analysis. "
-    "Do not list or map individual data points. "
     "Do not invent information beyond the provided insights."
 )
 
@@ -34,14 +33,14 @@ DEFAULT_ARTICLE_SYSTEM_PROMPT = (
 
 def get_summarize_batch_user_prompt(user_context: str, indexed_docs: list[dict[str, Any]]) -> str:
     return (
-        "USER CONTEXT:\n"
+        "USER CONTEXT (IMPORTANT):\n"
         f"{user_context}\n\n"
         "TASK PROMPT:\n"
         f"{DEFAULT_ANALYSIS_PROMPT}\n\n"
         "DATA (JSON, indexed):\n"
         f"{json.dumps(indexed_docs, ensure_ascii=False)}\n\n"
-        "Return ONLY valid JSON (avoid markdown, avoid trailing commas -- at all costs!"
-        "The result should be ONLY a valid JSON object) with this EXACT schema (avoid any additional data):\n"
+        "Return MUST ONLY valid JSON (avoid markdown, avoid trailing commas -- at all costs!"
+        "The result should be and MUST be ONLY a valid JSON object) with this EXACT (MUST be the same) schema (avoid any additional data):\n"
         "{\n"
         '  "themes": [ {"name": str, "summary": str, "confidence": 0..1} ],\n'
         '  "indirect_signals": [ {"signal": str, "why_it_matters": str, "confidence": 0..1} ],\n'
@@ -60,7 +59,7 @@ def get_summarize_batch_user_prompt(user_context: str, indexed_docs: list[dict[s
 
 def get_synthesize_article_user_prompt(user_context: str, summaries_json: str) -> str:
     return (
-        "USER CONTEXT:\n"
+        "USER CONTEXT (IMPORTANT):\n"
         f"{user_context}\n\n"
         "STRUCTURED INSIGHTS (JSON):\n"
         f"{summaries_json}\n\n"

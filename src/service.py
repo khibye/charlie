@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import uvicorn
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 from motor.motor_asyncio import (
     AsyncIOMotorClient,
@@ -18,6 +19,16 @@ from llm.clients import BaseLLMClient, GLM5SelfHostedClient, QwenLocalCPUClient
 class Service:
     def __init__(self) -> None:
         self.app = FastAPI(title="Article Creator Service")
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=[
+                "http://localhost:5173",
+                "http://127.0.0.1:5173",
+            ],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
         # Mongo
         self.mongo: AsyncIOMotorClient = AsyncIOMotorClient(MongoInfo.URI)

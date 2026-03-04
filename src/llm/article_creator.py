@@ -7,7 +7,6 @@ from loguru import logger
 
 from .clients.base_llm_client import BaseLLMClient
 from .prompts import (
-    DEFAULT_ARTICLE_PROMPT,
     DEFAULT_ANALYSIS_SYSTEM_PROMPT,
     DEFAULT_ARTICLE_SYSTEM_PROMPT,
     get_summarize_batch_user_prompt,
@@ -48,7 +47,7 @@ class ArticleLLMCreator:
         # TODO: We'll make this adaptive later (e.g., by token estimation).
 
         semaphore: asyncio.Semaphore = asyncio.Semaphore(3)
-        batch_size: int = 540
+        batch_size: int = 560
 
         tasks = [
             asyncio.create_task(
@@ -159,7 +158,6 @@ class ArticleLLMCreator:
         self,
         batch_summaries: list[dict[str, Any]],
         user_context: str,
-        prompt: str = DEFAULT_ARTICLE_PROMPT,
     ) -> str:
         """Reduce step: combine structured batch summaries into final prose."""
 

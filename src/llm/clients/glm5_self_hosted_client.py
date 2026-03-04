@@ -10,7 +10,7 @@ class GLM5SelfHostedClient(BaseLLMClient):
 
     def __init__(
         self,
-        model_id: str = "GLM-4.5-X",
+        model_id: str = "GLM-5",
         api_key: str | None = os.getenv("API_KEY"),
     ) -> None:
         self.model_id = model_id
