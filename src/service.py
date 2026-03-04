@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import uvicorn
 from fastapi import FastAPI, Query
+from loguru import logger
 from motor.motor_asyncio import (
     AsyncIOMotorClient,
     AsyncIOMotorDatabase,
@@ -68,6 +69,8 @@ class Service:
             fetched_data=fetched_data,
             user_context=user_context,
         )
+
+        logger.info("Done creating article", country=country, city=city, user_id=user_id)
 
         return ArticleResponse(
             article=article,

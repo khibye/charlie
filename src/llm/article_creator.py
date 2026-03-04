@@ -48,7 +48,7 @@ class ArticleLLMCreator:
         # TODO: We'll make this adaptive later (e.g., by token estimation).
 
         semaphore: asyncio.Semaphore = asyncio.Semaphore(3)
-        batch_size: int = 100
+        batch_size: int = 540
 
         tasks = [
             asyncio.create_task(
@@ -178,8 +178,8 @@ class ArticleLLMCreator:
 
         if hasattr(self.llm, "generate"):
             return await self.llm.generate(system=DEFAULT_ARTICLE_SYSTEM_PROMPT, user=user_prompt)
-
-        raise TypeError(
-            "BaseLLMClient must expose an async method named generate(system=..., user=...), "
-            "which returns the generated text as a string."
-        )
+        else:
+            raise TypeError(
+                "BaseLLMClient must expose an async method named generate(system=..., user=...), "
+                "which returns the generated text as a string."
+            )

@@ -1,3 +1,5 @@
+import os
+
 from openai import AsyncOpenAI
 
 from llm.clients.base_llm_client import BaseLLMClient
@@ -8,8 +10,8 @@ class GLM5SelfHostedClient(BaseLLMClient):
 
     def __init__(
         self,
-        model_id: str = "glm-5",
-        api_key: str | None = "33c3a0bc61024ab5b30a759e85d7a57e.SYNtg8E2zwey7IWS",
+        model_id: str = "GLM-4.5-X",
+        api_key: str | None = os.getenv("API_KEY"),
     ) -> None:
         self.model_id = model_id
         self.client = AsyncOpenAI(api_key=api_key, base_url="https://api.z.ai/api/paas/v4/")
@@ -25,8 +27,6 @@ class GLM5SelfHostedClient(BaseLLMClient):
         response = await self.client.chat.completions.create(
             model=self.model_id,
             messages=messages,
-            max_tokens=800,
-            temperature=0.7,
         )
 
         return response.choices[0].message.content
