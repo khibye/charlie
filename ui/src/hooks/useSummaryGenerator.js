@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { streamManzouriReply } from '../api/manzouri.js';
-import { MANZOURI_REQUEST_PAYLOAD } from '../constants/chat.js';
+import { streamCharlieReply } from '../api/charlie.js';
+import { CHARLIE_REQUEST_PAYLOAD } from '../constants/chat.js';
 import { formatTime } from '../utils/time.js';
 
 export function useSummaryGenerator() {
@@ -28,8 +28,8 @@ export function useSummaryGenerator() {
     setSummary('');
 
     try {
-      const finalText = await streamManzouriReply(
-        MANZOURI_REQUEST_PAYLOAD,
+      const finalText = await streamCharlieReply(
+        CHARLIE_REQUEST_PAYLOAD,
         (chunk) => {
           setSummary((previous) => previous + chunk);
         },

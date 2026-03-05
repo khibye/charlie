@@ -1,4 +1,4 @@
-import { MANZOURI_REPLY_STREAM_URL } from '../constants/chat.js';
+import { CHARLIE_REPLY_STREAM_URL } from '../constants/chat.js';
 
 const DEBUG_API = import.meta.env.VITE_DEBUG_API === 'true';
 
@@ -7,7 +7,7 @@ function debugLog(label, data) {
     return;
   }
 
-  console.log(`[manzouri-api] ${label}`, data);
+  console.log(`[charlie-api] ${label}`, data);
 }
 
 function extractReply(payload) {
@@ -33,8 +33,8 @@ function extractReply(payload) {
     : null;
 }
 
-export async function fetchManzouriReply(requestPayload) {
-  const url = new URL(MANZOURI_REPLY_STREAM_URL);
+export async function fetchCharlieReply(requestPayload) {
+  const url = new URL(CHARLIE_REPLY_STREAM_URL);
   Object.entries(requestPayload).forEach(([key, value]) => {
     url.searchParams.set(key, String(value));
   });
@@ -56,7 +56,7 @@ export async function fetchManzouriReply(requestPayload) {
   });
 
   if (!response.ok) {
-    throw new Error(`Manzouri API returned status ${response.status}`);
+    throw new Error(`Charlie API returned status ${response.status}`);
   }
 
   if (!response.body) {
@@ -91,8 +91,8 @@ export async function fetchManzouriReply(requestPayload) {
   return extractReply(fullText);
 }
 
-export async function streamManzouriReply(requestPayload, onChunk, options = {}) {
-  const url = new URL(MANZOURI_REPLY_STREAM_URL);
+export async function streamCharlieReply(requestPayload, onChunk, options = {}) {
+  const url = new URL(CHARLIE_REPLY_STREAM_URL);
   Object.entries(requestPayload).forEach(([key, value]) => {
     url.searchParams.set(key, String(value));
   });
@@ -105,7 +105,7 @@ export async function streamManzouriReply(requestPayload, onChunk, options = {})
 
   const response = await fetch(url, { method: 'GET', signal: options.signal });
   if (!response.ok) {
-    throw new Error(`Manzouri API returned status ${response.status}`);
+    throw new Error(`Charlie API returned status ${response.status}`);
   }
   if (!response.body) {
     const text = await response.text();
