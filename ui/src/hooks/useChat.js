@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
-import { streamManzouriReply } from '../api/manzouri.js';
-import { CHAT_CONTACT, MANZOURI_REQUEST_PAYLOAD } from '../constants/chat.js';
+import { streamCharlieReply } from '../api/charlie.js';
+import { CHAT_CONTACT, CHARLIE_REQUEST_PAYLOAD } from '../constants/chat.js';
 import { createMessage } from '../utils/chat.js';
 
 export function useChat() {
   const [text, setText] = useState('');
   const [messages, setMessages] = useState([
     createMessage({
-      sender: 'manzouri',
+      sender: 'charlie',
       content: CHAT_CONTACT.introMessage,
     }),
   ]);
@@ -23,11 +23,11 @@ export function useChat() {
     ]);
     setText('');
 
-    const replyMessage = createMessage({ sender: 'manzouri', content: '' });
+    const replyMessage = createMessage({ sender: 'charlie', content: '' });
     setMessages((previous) => [...previous, replyMessage]);
 
     try {
-      const replyFromApi = await streamManzouriReply(MANZOURI_REQUEST_PAYLOAD, (chunk) => {
+      const replyFromApi = await streamCharlieReply(CHARLIE_REQUEST_PAYLOAD, (chunk) => {
         setMessages((previous) =>
           previous.map((message) =>
             message.id === replyMessage.id
@@ -45,7 +45,7 @@ export function useChat() {
                   content:
                     replyFromApi ??
                     message.content ??
-                    'Manzouri did not return a message.',
+                    'Charlie did not return a message.',
                 }
               : message
         ),
@@ -56,7 +56,7 @@ export function useChat() {
           message.id === replyMessage.id
             ? {
                 ...message,
-                content: 'Could not reach Manzouri right now. Please try again.',
+                content: 'Could not reach Charlie right now. Please try again.',
               }
             : message
         ),

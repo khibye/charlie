@@ -1,12 +1,12 @@
 export const CHAT_CONTACT = {
-  name: 'Manzouri',
+  name: 'Charlie',
   avatarInitial: 'M',
-  introMessage: 'Hey, this is Manzouri. Send me a message when you are ready.',
+  introMessage: 'Hey, this is Charlie. Send me a message when you are ready.',
 };
 
 export const API_BASE_URL = 'http://localhost:8000';
-export const MANZOURI_REPLY_URL = `${API_BASE_URL}/summarize`;
-export const MANZOURI_REPLY_STREAM_URL = `${API_BASE_URL}/summarize-stream`;
+export const CHARLIE_REPLY_URL = `${API_BASE_URL}/summarize`;
+export const CHARLIE_REPLY_STREAM_URL = `${API_BASE_URL}/summarize-stream`;
 export const CONTEXT_ENDPOINTS = {
   get: ['/context'],
   manualImprove: '/manual-improve-context',
@@ -16,7 +16,7 @@ export const USER_ID = 'user-001';
 export const COUNTRY = 'Israel';
 export const CITY = 'Tel Aviv';
 
-export const MANZOURI_REQUEST_PAYLOAD = {
+export const CHARLIE_REQUEST_PAYLOAD = {
   user_id: USER_ID,
   country: COUNTRY,
   city: CITY,

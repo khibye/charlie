@@ -4,7 +4,7 @@ import {
   llmImproveContext,
   manualImproveContext,
 } from '../api/context.js';
-import { MANZOURI_REQUEST_PAYLOAD } from '../constants/chat.js';
+import { CHARLIE_REQUEST_PAYLOAD } from '../constants/chat.js';
 
 export function useContextManager() {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -22,7 +22,7 @@ export function useContextManager() {
     setErrorMessage('');
 
     try {
-      const context = await fetchCurrentContext(MANZOURI_REQUEST_PAYLOAD);
+      const context = await fetchCurrentContext(CHARLIE_REQUEST_PAYLOAD);
       setCurrentContext(context);
       setManualContext(context);
       setStatusMessage('Context loaded.');
@@ -55,7 +55,7 @@ export function useContextManager() {
     setErrorMessage('');
 
     try {
-      await manualImproveContext(MANZOURI_REQUEST_PAYLOAD, nextContext);
+      await manualImproveContext(CHARLIE_REQUEST_PAYLOAD, nextContext);
       await loadContext();
       setStatusMessage('Manual context update completed.');
     } catch (error) {
@@ -76,7 +76,7 @@ export function useContextManager() {
     setErrorMessage('');
 
     try {
-      await llmImproveContext(MANZOURI_REQUEST_PAYLOAD, request);
+      await llmImproveContext(CHARLIE_REQUEST_PAYLOAD, request);
       await loadContext();
       setStatusMessage('LLM context update completed.');
       setClarification('');
